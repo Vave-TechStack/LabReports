@@ -40,9 +40,6 @@ coverage/
 prisma/*.db
 prisma/*.db-journal
 
-# Docker
-.docker/
-
 # Misc
 *.tsbuildinfo
 next-env.d.ts
