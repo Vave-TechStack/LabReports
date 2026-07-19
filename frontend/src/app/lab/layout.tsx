@@ -24,16 +24,17 @@ const sidebarLinks = [
 export default function LabLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, _hasHydrated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
+    if (!_hasHydrated) return; // Wait for zustand persist hydration
     if (!isAuthenticated || !['LAB_ASSISTANT', 'ADMIN', 'SUPER_ADMIN'].includes(user?.role || '')) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, router]);
+  }, [_hasHydrated, isAuthenticated, user, router]);
 
-  if (!isAuthenticated) return null;
+  if (!_hasHydrated || !isAuthenticated) return null;
 
   const handleLogout = async () => {
     try { await apiService.auth.logout(); } catch { /* */ }

@@ -15,6 +15,6 @@
     "db:studio": "cd backend && npm run db:studio"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.2.4"
   }
 }

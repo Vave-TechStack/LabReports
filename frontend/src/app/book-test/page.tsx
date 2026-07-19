@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -92,7 +92,7 @@ const branches = [
   { name: 'MediLab - Marathahalli', address: '56, Outer Ring Road, Marathahalli, Bangalore', distance: '15.3 km' },
 ];
 
-export default function BookTestPage() {
+function BookTestContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
@@ -593,5 +593,20 @@ export default function BookTestPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function BookTestPage() {
+  return (
+    <Suspense fallback={
+      <div className="pt-20 min-h-screen bg-surface flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-slate-500">Loading booking page...</p>
+        </div>
+      </div>
+    }>
+      <BookTestContent />
+    </Suspense>
   );
 }

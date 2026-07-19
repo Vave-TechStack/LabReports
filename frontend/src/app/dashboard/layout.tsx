@@ -24,17 +24,18 @@ const sidebarLinks = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, _hasHydrated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
+    if (!_hasHydrated) return; // Wait for zustand persist hydration
     if (!isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [_hasHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) return null;
+  if (!_hasHydrated || !isAuthenticated) return null;
 
   const handleLogout = async () => {
     setLoggingOut(true);

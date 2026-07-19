@@ -30,12 +30,32 @@ export default function LoginPage() {
   const handleEmailLogin = async (data: LoginFormData) => {
     setLoading(true);
     setError('');
+
+    // Demo credentials - check FIRST for instant login without waiting for backend
+    const demoAccounts: Record<string, { user: { id: string; email: string; role: string; name: string; phone: string }; redirect: string }> = {
+      'demo@medilab.com': { user: { id: 'demo-001', email: 'demo@medilab.com', role: 'PATIENT', name: 'Demo Patient', phone: '+919999999999' }, redirect: '/dashboard' },
+      'admin@medilab.com': { user: { id: 'admin-001', email: 'admin@medilab.com', role: 'SUPER_ADMIN', name: 'Admin User', phone: '+919999999900' }, redirect: '/admin' },
+      'lab@medilab.com': { user: { id: 'lab-001', email: 'lab@medilab.com', role: 'LAB_ASSISTANT', name: 'Lab Technician', phone: '+919999999901' }, redirect: '/lab' },
+      'doctor@medilab.com': { user: { id: 'doc-001', email: 'doctor@medilab.com', role: 'DOCTOR', name: 'Demo Doctor', phone: '+919999999902' }, redirect: '/doctor' },
+    };
+    const demoPasswords: Record<string, string> = { 'demo@medilab.com': 'Demo@123', 'admin@medilab.com': 'Admin@123', 'lab@medilab.com': 'Lab@123', 'doctor@medilab.com': 'Doc@123' };
+
+    const demo = demoAccounts[data.email];
+    if (demo && demoPasswords[data.email] === data.password) {
+      const demoAccessToken = 'demo_access_token_' + Date.now();
+      const demoRefreshToken = 'demo_refresh_token_' + Date.now();
+      setAuth(demo.user, demoAccessToken, demoRefreshToken);
+      router.push(demo.redirect);
+      setLoading(false);
+      return;
+    }
+
+    // Try real backend API
     try {
       const response = await apiService.auth.login(data);
       if (response.data.success) {
         const { user, accessToken, refreshToken } = response.data.data;
         setAuth(user, accessToken, refreshToken);
-        // Route based on role
         const roleRedirects: Record<string, string> = {
           SUPER_ADMIN: '/admin',
           ADMIN: '/admin',
@@ -46,24 +66,6 @@ export default function LoginPage() {
         router.push(roleRedirects[user.role] || '/dashboard');
       }
     } catch (err: any) {
-      // Demo login - fallback when backend is not running
-      const demoAccounts: Record<string, { user: { id: string; email: string; role: string; name: string; phone: string }; redirect: string }> = {
-        'demo@medilab.com': { user: { id: 'demo-001', email: 'demo@medilab.com', role: 'PATIENT', name: 'Demo Patient', phone: '+919999999999' }, redirect: '/dashboard' },
-        'admin@medilab.com': { user: { id: 'admin-001', email: 'admin@medilab.com', role: 'SUPER_ADMIN', name: 'Admin User', phone: '+919999999900' }, redirect: '/admin' },
-        'lab@medilab.com': { user: { id: 'lab-001', email: 'lab@medilab.com', role: 'LAB_ASSISTANT', name: 'Lab Technician', phone: '+919999999901' }, redirect: '/lab' },
-        'doctor@medilab.com': { user: { id: 'doc-001', email: 'doctor@medilab.com', role: 'DOCTOR', name: 'Demo Doctor', phone: '+919999999902' }, redirect: '/doctor' },
-      };
-      const demo = demoAccounts[data.email];
-      // Check demo accounts by both email AND password
-      const demoPasswords: Record<string, string> = { 'demo@medilab.com': 'Demo@123', 'admin@medilab.com': 'Admin@123', 'lab@medilab.com': 'Lab@123', 'doctor@medilab.com': 'Doc@123' };
-      if (demo && demoPasswords[data.email] === data.password) {
-        const demoAccessToken = 'demo_access_token_' + Date.now();
-        const demoRefreshToken = 'demo_refresh_token_' + Date.now();
-        setAuth(demo.user, demoAccessToken, demoRefreshToken);
-        router.push(demo.redirect);
-        setLoading(false);
-        return;
-      }
       setError(err.response?.data?.message || 'Login failed. Invalid email or password.');
     }
     setLoading(false);
@@ -163,9 +165,10 @@ export default function LoginPage() {
           animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-md"
         >
-          <div className="lg:hidden mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700">
-              <ArrowLeft className="w-4 h-4" /> Back to Home
+          <div className="mb-6">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 group transition-all duration-200">
+              <ArrowLeft className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-1" />
+              <span>Back to Website</span>
             </Link>
           </div>
 

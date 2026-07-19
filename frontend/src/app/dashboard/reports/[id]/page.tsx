@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, FileText, Download, Calendar, User, Award, CheckCircle, AlertCircle, Printer, ExternalLink } from 'lucide-react';
+import { ArrowLeft, FileText, Download, Calendar, User, Award, CheckCircle, AlertCircle, Printer, ExternalLink, Loader2 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { downloadReportPDF } from '@/lib/downloadReport';
 
 interface TestParameter {
   testId: string;
@@ -41,6 +42,7 @@ export default function ReportDetailPage() {
   const router = useRouter();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -135,13 +137,45 @@ export default function ReportDetailPage() {
               <Printer className="w-4 h-4" /> Print
             </button>
             <button
-              onClick={() => {
-                const token = localStorage.getItem('accessToken');
-                window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/reports/download/${report.id}/pdf?token=${token}`, '_blank');
+              onClick={async () => {
+                setDownloading(true);
+                try {
+                  // Try backend first
+                  const token = localStorage.getItem('accessToken');
+                  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+                  const response = await fetch(`${apiUrl}/reports/download/${report.id}/pdf?token=${token}`, {
+                    method: 'GET',
+                  });
+                  if (response.ok) {
+                    // If backend succeeds, download as blob
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `report-${report.reportNumber}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                  } else {
+                    // Fallback: client-side PDF generation
+                    downloadReportPDF(report);
+                  }
+                } catch {
+                  // Backend unavailable: use client-side fallback
+                  downloadReportPDF(report);
+                }
+                setDownloading(false);
               }}
-              className="px-4 py-2.5 bg-primary-50 text-primary-700 rounded-xl text-sm font-medium hover:bg-primary-100 transition-all flex items-center gap-2"
+              disabled={downloading}
+              className="px-4 py-2.5 bg-primary-50 text-primary-700 rounded-xl text-sm font-medium hover:bg-primary-100 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download className="w-4 h-4" /> Download PDF
+              {downloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              Download PDF
             </button>
           </div>
         </div>

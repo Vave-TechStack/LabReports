@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { FileText, Download, Eye, Search, ChevronRight, Calendar, User, Award, Loader2 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+import { downloadReportPDF } from '@/lib/downloadReport';
 
 interface Report {
   id: string;
@@ -51,16 +52,30 @@ export default function ReportsPage() {
   const handleDownload = async (report: Report) => {
     setDownloading(report.id);
     try {
-      // In production, this would download the actual PDF URL
-      const response = await apiService.reports.getById(report.id);
-      const reportData = response.data?.data;
-      if (reportData?.pdfUrl) {
-        window.open(reportData.pdfUrl, '_blank');
+      // Try backend first
+      const token = localStorage.getItem('accessToken');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+      const response = await fetch(`${apiUrl}/reports/download/${report.id}/pdf?token=${token}`, {
+        method: 'GET',
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `report-${report.reportNumber}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       } else {
-        // Generate a simple view of the report
-        window.open(`/dashboard/reports/${report.id}`, '_blank');
+        // Backend returned error: use client-side generation directly from list data
+        downloadReportPDF(report as any);
       }
-    } catch { /* */ }
+    } catch {
+      // Backend unavailable: use client-side generation directly from list data
+      downloadReportPDF(report as any);
+    }
     setDownloading(null);
   };
 

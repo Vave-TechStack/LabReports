@@ -4,6 +4,7 @@ import { Providers } from '@/components/providers/Providers';
 import { LayoutWrapper } from '@/components/layout/LayoutWrapper';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://medilab.com'),
   title: {
     default: 'MediLab Diagnostics - Advanced Blood Testing Laboratory',
     template: '%s | MediLab Diagnostics',
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     siteName: 'MediLab Diagnostics',
     title: 'MediLab Diagnostics - Advanced Blood Testing Laboratory',
     description: "India's most trusted blood diagnostic laboratory. Book online, home collection, accurate reports.",
-    images: [{ url: '/images/og-image.jpg', width: 1200, height: 630 }],
+    images: [{ url: '/images/og-image.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -41,8 +42,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth">
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
       </head>
       <body className="min-h-screen flex flex-col">
         <Providers>

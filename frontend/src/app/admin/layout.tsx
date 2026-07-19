@@ -61,17 +61,18 @@ const crmLinks = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, _hasHydrated } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
+    if (!_hasHydrated) return; // Wait for zustand persist hydration
     if (!isAuthenticated || (user?.role !== 'SUPER_ADMIN' && user?.role !== 'ADMIN')) {
       router.push('/login');
     }
-  }, [isAuthenticated, user, router]);
+  }, [_hasHydrated, isAuthenticated, user, router]);
 
-  if (!isAuthenticated) return null;
+  if (!_hasHydrated || !isAuthenticated) return null;
 
   const handleLogout = async () => {
     setLoggingOut(true);
